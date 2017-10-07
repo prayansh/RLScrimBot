@@ -1,0 +1,23 @@
+{
+  "name": "rl-scrim-bot",
+  "version": "1.0.0",
+  "description": "A discord bot that can create scrims",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "rocket",
+    "league",
+    "scrim"
+  ],
+  "author": "Prayansh",
+  "dependencies": {
+    "discord.js": "^11.2.1",
+    "mongoose": "4.9.8",
+    "unirest": "^0.5.1",
+    "winston": "^2.3.1"
+  }
+}
