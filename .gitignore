@@ -1,4 +1,4 @@
 auth.json
-node_modules
 package-lock.json
-.idea
+/.idea/
+/node_modules/
