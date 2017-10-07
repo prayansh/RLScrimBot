@@ -28,32 +28,8 @@ let getAuth = function (type) {
     let token = '';
     if (type.toLowerCase() === 'discord') {
         token = (auth) ? auth.discord_token : process.env.DISCORD_TOKEN;
-    } else if (type.toLowerCase() === 'rl') {
-        token = (auth) ? auth.rl_token : process.env.RL_TOKEN;
-    } else if (type.toLowerCase() === 'mongo') {
-        token = (auth) ? auth.mongo_pass : process.env.MONGO_PASS;
     }
     return token;
-};
-
-let getPlayerDataBatch = function (playerData, callback) {
-    console.log("Getting Player Data");
-    let Request = unirest.post('https://api.rocketleaguestats.com/v1/player/batch');
-
-    Request.headers({
-        'Authorization': getAuth('rl'),
-        'Accept': 'application/json',
-        'Content-Type': 'application/json'
-    });
-    Request.send(playerData);
-
-    Request.end(function (response) {
-        if (response.status === 429) {
-            console.log("Request has been ratelimited: '" + response.body.message + "'.");
-        }
-
-        callback(response.status, response.body);
-    });
 };
 
 let randomFunnyMessages = [
@@ -65,21 +41,7 @@ let randomFunnyMessages = [
     "This feels like home"
 ];
 
-
-let mongo_uri = "mongodb://"
-        + properties.mongo_user + ":" + getAuth('mongo') + "@"
-        + "rldiscordbot-shard-00-00-k9ogi.mongodb.net:27017"
-        + ",rldiscordbot-shard-00-01-k9ogi.mongodb.net:27017"
-        + ",rldiscordbot-shard-00-02-k9ogi.mongodb.net:27017"
-        + "/" + properties.mongo_db
-        + "?ssl=true&replicaSet=RLDiscordBot-shard-0&authSource=admin"
-    ;
-
-
-mongoose.connect(mongo_uri, function (err) {
-    if (err) console.error(err);
-    else console.log('mongo connected');
-});
+let voiceChannel = false;
 
 function shuffle(a) {
     for (let i = a.length; i; i--) {
@@ -157,30 +119,7 @@ client.on("message", function (message) {
                     .catch(console.error);
                 i++;
             });
-
-            // let queryPayload = [];
-            // memberIds.forEach(function (id) {
-            //     queryPayload.push({discordId: id});
-            // });
-            // let query = {'$or': queryPayload};
-            // User.find(query, function (err, users) {
-            //     if (users) {
-            //         let usermap = {};
-            //         let batchPayload = [];
-            //         users.forEach(function (user) {
-            //             batchPayload.push({"platformId": user.platform, "uniqueId": user.steamId});
-            //             usermap.steamId = user.discordId;
-            //         });
-            //         getPlayerDataBatch(batchPayload, function (status, body) {
-            //             console.log(`
-            // PlayerDataBatch: responseCode = ${status}`);
-            //             console.log('PlayerDataBatch body=' + JSON.stringify(body));
-            //             let teams = formTeams(body, [[], []]);
-            //             let team1 = teams[0];
-            //             let team2 = teams[2];
-            //         });
-            //     }
-            // });
+            voiceChannel = channel;
         }
     }
     if (command.toLowerCase() === 'clean') {
@@ -190,13 +129,20 @@ client.on("message", function (message) {
         channels.forEach(function (channel) {
             let vChannel = channel;
             if (vChannel.name.indexOf(team_prefix) !== -1) {
-                console.log('#4');
+                if (voiceChannel) {
+                    vChannel.members.every(function (player) {
+                        player.setVoiceChannel(voiceChannel)
+                            .then(() => console.log(`${player} added back to ${voiceChannel}`))
+                            .catch(console.error);
+                        return true;
+                    });
+                }
                 vChannel.delete('delete temp channel')
                     .then(channel => console.log(`Deleted temp channel :${channel.name}`))
                     .catch(console.error); // Log error
             }
         });
-
+        voiceChannel = false;
     }
 });
 
