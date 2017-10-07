@@ -120,7 +120,7 @@ client.on("guildCreate", guild => {
 });
 
 
-client.on("message", async message => {
+client.on("message", function (message) {
     if (message.author.bot) return;
 
     if (message.content.indexOf('!') !== 0) return;
